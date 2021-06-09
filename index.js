@@ -1,5 +1,21 @@
 const inquirer = require('inquirer');
+const mysql = require("mysql");
+const consoleTable = require("console.table");
 
+
+const connection = mysql.createConnection({
+  host: 'localhost',
+  port: 3306,
+  user: 'root',
+  password: '',
+  database: 'hw12_db',
+});
+
+connection.connect(err => {
+  if (err) throw err;
+  console.log(`connected as id ${connection.threadId}\n`);
+  initialize();
+});
 
 const initialize = () => {
     inquirer
@@ -21,41 +37,86 @@ const initialize = () => {
         ]).then(data => {
             switch (data.path) {
                 case 'View all employees':
-                    viewEmployees();
+                    viewEmployees('all');
                     break;
                 case 'View all employees by department':
-                    viewEmployeesByDept();
+                    viewEmployees('dept');
                     break;
                 case 'View all employees by manager':
-                    viewEmployeesByMgmt();
+                    viewEmployees('mgmt');
                     break;
                 case 'Add employees':
-                    addEmployees();
+                    updateEmployees('add');
                     break;
                 case 'Remove employee':
-                    removeEmployee();
+                    updateEmployees('remove');
                     break;
                 case 'Update employee role':
-                    updateEmployee();
+                    updateEmployees('role');
                     break;
                 case 'Update employee manager':
-                    updateEmployeeMgmt();
+                    updateEmployees('mgmt');
                     break;
                 default:
-                    console.log("Error, no selection!");
+                    console.log('Error, no selection!');
             }
         })
 }
 
-const viewEmployees = () => {
-    inquirer
-        .prompt([
-            {
-                type: 'list',
-                name: '',
-                message: 'What would you like to do?',
-            }
-        ])
+const viewEmployees = (action) => {
+    switch (action) {
+        case 'all':
+            console.log("bing");
+            break;
+        case 'dept':
+            inquirer
+                .prompt([
+                    {
+                        type: 'list',
+                        name: '',
+                        message: 'What would you like to do?',
+                    }
+                ])
+            break;
+        case 'mgmt':
+            inquirer
+                .prompt([
+                    {
+                        type: 'list',
+                        name: '',
+                        message: 'What would you like to do?',
+                    }
+                ])
+            break;
+        default:
+            console.log('Error, please specify what you would like to do!')
+            initialize();
+
+    }
 }
 
-initialize();
+const updateEmployees = (action) => {
+    switch (action) {
+        case 'add':
+            break;
+        case 'remove':
+            break;
+        case 'role':
+            break;
+        case 'mgmt':
+            break;
+        default:
+            console.log('Error, please specify what you would like to do!')
+            initialize();
+    }
+}
+
+const updateRoles = (action) => {
+    switch (action) {
+        case 'add':
+            break;
+        case 'remove':
+            break;
+    }
+}
+
