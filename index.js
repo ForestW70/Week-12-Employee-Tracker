@@ -4,17 +4,17 @@ const consoleTable = require("console.table");
 
 
 const connection = mysql.createConnection({
-  host: 'localhost',
-  port: 3306,
-  user: 'root',
-  password: '',
-  database: 'hw12_db',
+    host: 'localhost',
+    port: 3306,
+    user: 'root',
+    password: '',
+    database: 'hw12_db',
 });
 
 connection.connect(err => {
-  if (err) throw err;
-  console.log(`connected as id ${connection.threadId}\n`);
-  initialize();
+    if (err) throw err;
+    console.log(`connected as id ${connection.threadId}\n`);
+    initialize();
 });
 
 const initialize = () => {
@@ -63,36 +63,66 @@ const initialize = () => {
         })
 }
 
-const viewEmployees = (action) => {
-    switch (action) {
-        case 'all':
-            console.log("bing");
-            break;
-        case 'dept':
-            inquirer
-                .prompt([
-                    {
-                        type: 'list',
-                        name: '',
-                        message: 'What would you like to do?',
-                    }
-                ])
-            break;
-        case 'mgmt':
-            inquirer
-                .prompt([
-                    {
-                        type: 'list',
-                        name: '',
-                        message: 'What would you like to do?',
-                    }
-                ])
-            break;
-        default:
-            console.log('Error, please specify what you would like to do!')
-            initialize();
+const viewEmployees = async (action) => {
+    let search;
+    let value;
+    let query;
 
+    if (action == 'all'){
+        query = 'SELECT * FROM employees';
+
+
+    } else if (action == 'dept') {
+        await inquirer.prompt([
+            {
+                type: 'list',
+                name: 'department_id',
+                message: 'What department would you like to search?',
+                choices: [
+                    '1',
+                    '2',
+                    '3',
+                    '4',
+                    '5',
+                    '6'
+                ]
+            }
+        ]).then(data => {
+            search = 'role_id';
+            value = Number(data.department_id);
+            query = `SELECT * FROM employees WHERE ${search} = ${value}`;
+        })
+        
+
+    } else if (action == 'mgmt') {
+        await inquirer.prompt([
+            {
+                type: 'list',
+                name: 'manager_id',
+                message: 'Which manager would you like to search?',
+                choices: [
+                    '1',
+                    '2',
+                    '3',
+                    '4'
+                ]
+            }
+        ]).then(data => {
+            search = 'manager_id';
+            value = Number(data.manager_id);
+            query = `SELECT * FROM employees WHERE ${search} = ${value}`;
+        })
+        
+    } else {
+        console.log("whoops")
     }
+
+    
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        console.log(res)
+    })
+    initialize();
 }
 
 const updateEmployees = (action) => {
