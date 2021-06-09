@@ -31,7 +31,10 @@ const initialize = () => {
                     'Add employees',
                     'Remove employee',
                     'Update employee role',
-                    'Update employee manager'
+                    'Update employee manager',
+                    'Update departments',
+                    'View budget',
+                    'exit'
                 ],
             },
         ]).then(data => {
@@ -63,7 +66,7 @@ const initialize = () => {
         })
 }
 
-const viewEmployees = async (action) => {
+const viewEmployees = async(action) => {
     let search;
     let value;
     let query;
