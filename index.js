@@ -49,13 +49,13 @@ const initialize = () => {
                     viewEmployees('mgmt');
                     break;
                 case 'Add employees':
-                    updateEmployees('add');
+                    addEmployee();
                     break;
                 case 'Remove employee':
-                    updateEmployees('remove');
+                    removeEmployee();
                     break;
                 case 'Update employee role':
-                    updateEmployees('role');
+                    updateEmployeeRole();
                     break;
                 case 'Update employee manager':
                     updateEmployees('mgmt');
@@ -66,12 +66,12 @@ const initialize = () => {
         })
 }
 
-const viewEmployees = async(action) => {
+const viewEmployees = async (action) => {
     let search;
     let value;
     let query;
 
-    if (action == 'all'){
+    if (action == 'all') {
         query = 'SELECT * FROM employees';
 
 
@@ -95,7 +95,7 @@ const viewEmployees = async(action) => {
             value = Number(data.department_id);
             query = `SELECT * FROM employees WHERE ${search} = ${value}`;
         })
-        
+
 
     } else if (action == 'mgmt') {
         await inquirer.prompt([
@@ -115,12 +115,12 @@ const viewEmployees = async(action) => {
             value = Number(data.manager_id);
             query = `SELECT * FROM employees WHERE ${search} = ${value}`;
         })
-        
+
     } else {
-        console.log("whoops")
+        console.log("whoops something went wrong!")
     }
 
-    
+
     connection.query(query, (err, res) => {
         if (err) throw err;
         console.log(res)
@@ -128,28 +128,120 @@ const viewEmployees = async(action) => {
     initialize();
 }
 
-const updateEmployees = (action) => {
-    switch (action) {
-        case 'add':
-            break;
-        case 'remove':
-            break;
-        case 'role':
-            break;
-        case 'mgmt':
-            break;
-        default:
-            console.log('Error, please specify what you would like to do!')
-            initialize();
-    }
+
+
+const addEmployee = async() => {
+    await inquirer.prompt([
+        {
+            type: 'input',
+            name: "first_name",
+            message: "Please enter the new employee's first name:",
+        },
+        {
+            type: 'input',
+            name: "last_name",
+            message: "Please enter the new employee's last name:",
+        },
+        {
+            type: 'list',
+            name: "role_id",
+            message: "Please enter the new employee's department:",
+            choices: [
+                '1',
+                '2',
+                '3',
+                '4',
+                '5',
+                '6'
+            ]
+        },
+        {
+            type: 'confirm',
+            name: "isManager",
+            message: "Is this new employee a manager?",
+
+        },
+        {
+            type: 'list',
+            name: "has_boss",
+            message: "Who is the new employee's boss?",
+            choices: [
+                '1',
+                '2',
+                '3',
+                '4',
+                '5',
+                '6'
+            ]
+        }
+    ]).then(data => {
+        let managerId;
+        let has_boss = 'NULL';
+        if (data.isManager) {
+            managerId = data.role_id;
+        }
+        query = `INSERT INTO employees SET ?`;
+
+        connection.query(query,
+            {
+                first_name: data.first_name,
+                last_name: data.last_name,
+                role_id: data.role_id,
+                has_boss: data.has_boss,
+                manager_id: managerId,
+
+            }, err => {
+                if (err) throw err;
+                console.log(`Sucessfully added ${data.first_name} to the Team!`)
+                initialize();
+            })
+        })
 }
 
-const updateRoles = (action) => {
-    switch (action) {
-        case 'add':
-            break;
-        case 'remove':
-            break;
-    }
+const removeEmployee = async() => {
+    await inquirer.prompt([
+        {
+            type: 'input',
+            name: "first_name",
+            message: "Please enter the new employee's first name:",
+        },
+        {
+            type: 'input',
+            name: "last_name",
+            message: "Please enter the new employee's last name:",
+        },
+        {
+            type: 'list',
+            name: "role_id",
+            message: "Please enter the new employee's department:",
+            choices: [
+                '1',
+                '2',
+                '3',
+                '4',
+                '5',
+                '6'
+            ]
+        },
+        {
+            type: 'confirm',
+            name: "isManager",
+            message: "Is this new employee a manager?",
+
+        },
+        {
+            type: 'list',
+            name: "has_boss",
+            message: "Who is the new employee's boss?",
+            choices: [
+                '1',
+                '2',
+                '3',
+                '4',
+                '5',
+                '6'
+            ]
+        }
+    ])
 }
 
