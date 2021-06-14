@@ -19,6 +19,7 @@ connection.connect(err => {
     initialize();
 });
 
+
 // UPDATED LISTS ==========================================
 let departmentList = [];
 let namesList = [];
@@ -27,7 +28,7 @@ let fullList = [];
 
 
 // ========================================================
-// home function that controls user navigation, refreshes lists.
+// HOME
 const initialize = async () => {
     refreshLists();
     updateDepartmentList();
@@ -47,7 +48,8 @@ const initialize = async () => {
                     'Remove employee',
                     'Update employee role',
                     'Update employee manager',
-                    'Update departments',
+                    'Add departments',
+                    'Remove departments',
                     'View budget',
                     'Exit'
                 ],
@@ -75,8 +77,11 @@ const initialize = async () => {
                 case 'Update employee manager':
                     updateEmployeeManager();
                     break;
-                case 'Update departments':
+                case 'Add departments':
                     updateDepartments();
+                    break;
+                case 'Remove departments':
+                    removeDepartments();
                     break;
                 case 'View budget':
                     viewBudget();
@@ -94,7 +99,8 @@ const initialize = async () => {
 // ========================================================
 // VIEW EMPLOYEES BY
 // all
-const viewAllEmployees = () => {
+const viewAllEmployees = async () => {
+    await refreshLists();
     console.log("\n" + "*~All employees~*" + "\n")
     console.table(fullList);
     initialize();
@@ -141,7 +147,7 @@ const viewEmployeesBy = async (action) => {
 
     connection.query(query, (err, res) => {
         if (err) throw err;
-        console.log("\n\n" + header + "\n")
+        console.log("\n\n" + header)
         console.table(res)
         console.log("\n");
     })
@@ -167,14 +173,7 @@ const addEmployee = async () => {
             type: 'list',
             name: "role_id",
             message: "Please enter the new employee's department:",
-            choices: [
-                '1',
-                '2',
-                '3',
-                '4',
-                '5',
-                '6'
-            ]
+            choices: departmentList
         },
         {
             type: 'confirm',
@@ -186,20 +185,14 @@ const addEmployee = async () => {
             type: 'list',
             name: "has_boss",
             message: "Who is the new employee's boss?",
-            choices: [
-                '1',
-                '2',
-                '3',
-                '4',
-                '5',
-                '6'
-            ]
+            choices: managerList
         }
     ]).then(data => {
+        let roleId = data.role_id.split("-")[0];
+        let hasBoss = data.has_boss.split("-")[0];
         let managerId;
-        let has_boss = 'NULL';
         if (data.isManager) {
-            managerId = data.role_id;
+            managerId = roleId;
         }
         query = `INSERT INTO employees SET ?`;
 
@@ -207,13 +200,13 @@ const addEmployee = async () => {
             {
                 first_name: data.first_name,
                 last_name: data.last_name,
-                role_id: data.role_id,
-                has_boss: data.has_boss,
+                role_id: roleId,
+                has_boss: hasBoss,
                 manager_id: managerId,
 
             }, err => {
                 if (err) throw err;
-                console.log(`Sucessfully added ${data.first_name} to the Team!`)
+                console.log(`\n Sucessfully added ${data.first_name} to the Team!\n`)
                 initialize();
             })
     })
@@ -222,58 +215,50 @@ const addEmployee = async () => {
 
 // ========================================================
 // REMOVE EMPLOYEE
-const removeEmployee = () => {
-    let allNames = [];
-    connection.query('select * from employees;', async (err, res) => {
-        if (err) {
-            throw new Error(err)
-        }
-        res.forEach(person => {
-            allNames.push(person.first_name + ' ' + person.last_name)
-        })
+const removeEmployee = async() => {
 
-        await inquirer.prompt([
+    await inquirer.prompt([
+        {
+            type: 'list',
+            name: "emp_name",
+            message: "Please select the employee you would like to remove:",
+            choices: namesList
+        },
+
+    ]).then(data => {
+        let selcEmpFirst = data.emp_name.split(' ')[0];
+        let selcEmpLast = data.emp_name.split(' ')[1];
+
+        inquirer.prompt([
             {
-                type: 'list',
-                name: "emp_name",
-                message: "Please select the employee you would like to remove:",
-                choices: allNames
-            },
-
+                type: 'confirm',
+                name: 'isSure',
+                message: `Are you sure you would like to delete ${data.emp_name}?`
+            }
         ]).then(data => {
-            let selcEmpFirst = data.emp_name.split(' ')[0];
-            let selcEmpLast = data.emp_name.split(' ')[1];
-
-            inquirer.prompt([
-                {
-                    type: 'confirm',
-                    name: 'isSure',
-                    message: `Are you sure you would like to delete ${data.emp_name}?`
-                }
-            ]).then(data => {
-                if (data.isSure) {
-                    let query = 'DELETE FROM employees WHERE first_name = ? AND last_name = ?;'
-                    connection.query(query, [selcEmpFirst, selcEmpLast], (err, res) => {
-                        if (err) {
-                            throw err;
-                        }
-                        console.log(`${selcEmpFirst} has been removed from the company!`);
-                        initialize();
-                    })
-                } else {
-                    console.log("\n" + "Returning...")
+            if (data.isSure) {
+                let query = 'DELETE FROM employees WHERE first_name = ? AND last_name = ?;'
+                connection.query(query, [selcEmpFirst, selcEmpLast], (err, res) => {
+                    if (err) {
+                        throw err;
+                    }
+                    console.log(`\n${selcEmpFirst} has been removed from the company!\n`);
                     initialize();
-                }
-            })
+                })
+            } else {
+                console.log(`\nReturning...\n`)
+                initialize();
+            }
         })
     })
 }
 
 
+
 // ========================================================
 // UPDATE EMPLOYEE
 // update role
-const updateEmployeeRole = async() => {
+const updateEmployeeRole = async () => {
     await inquirer.prompt([
         {
             type: 'list',
@@ -298,7 +283,7 @@ const updateEmployeeRole = async() => {
 }
 
 // update manager
-const updateEmployeeManager = async() => {
+const updateEmployeeManager = async () => {
     await inquirer.prompt([
         {
             type: 'list',
@@ -324,35 +309,112 @@ const updateEmployeeManager = async() => {
 
 // ========================================================
 // UPDATE DEPARTMENT LIST
-const updateDepartments = async() => {
-    
+const updateDepartments = async () => {
+
     await inquirer.prompt([
         {
             type: 'input',
             name: "dept",
             message: "What department would you like to add?",
+        },
+        {
+            type: 'input',
+            name: "role",
+            message: "What will their roll be called?",
+        
+        },
+        {
+            type: 'number',
+            name: "salary",
+            message: "What will their salary be?",
+        
         }
     ]).then(data => {
-        let newDept = data.dept.trim();
-        let query = 'INSERT INTO departments SET ?;'
+        const newDept = data.dept.trim();
+        const query = 'INSERT INTO departments SET ?;'
         connection.query(query, {
             "name": newDept,
         }, (err, res) => {
             if (err) {
                 throw err
             }
-            console.log(`/n/n Sucessfully added ${newDept} to active departments!`);
+            console.log(`\nSucessfully added ${newDept} to active departments!`);
             initialize();
+        })
+
+        const newRole = data.role.trim();
+        const salary = Number(data.salary);
+        const query2 = 'INSERT INTO roles SET ?;'
+        const pretty = numberWithCommas(salary);
+        connection.query(query2, {
+            "title": newRole,
+            "salary": salary,
+        }, (err, res) => {
+            if (err) {
+                throw err
+            }
+            console.log(`\nNew position: ${newRole}, making $${pretty} a year!\n`)
         })
 
     })
 }
 
+const removeDepartments = async () => {
+    await inquirer.prompt([
+        {
+            type: 'list',
+            name: "dept",
+            message: "Which department would you like to remove?",
+            choices: departmentList
+        },
+        {
+            type: 'confirm',
+            name: "isSure",
+            message: "Are you sure you want to delete this role? All assigned employess will lose their home :("
+        }
+    ]).then(data => {
+        if (data.isSure) {
+            const query = 'DELETE FROM departments WHERE ?'
+            const dptId = data.dept.split("-")[0];
+            const dptName = data.dept.split("-")[1];
+            connection.query(query, {
+                "name": dptName,
+            }, (err, res) => {
+                if (err) {
+                    throw err
+                }
+                console.log(`\nsucessfully removed ${dptName} from your active departments!\n`)
+            })
+
+            connection.query(`UPDATE employees SET role_id = NULL, has_boss = NULL, manager_id = NULL WHERE role_id = ?;`, [dptId], (err, res) => {
+                if (err) {
+                    throw err
+                }
+                console.log(`\nyou may have lost ${res.changedRows} employees! Go back and reassign them!\n`)
+                
+            })
+            initialize();
+        } else {
+            console.log(`\nReturning...\n`)
+            initialize();
+        }
+    })
+}
+
+
+
 
 // ========================================================
 // VIEW BUDGET
 const viewBudget = () => {
-
+    let salaryArray = [];
+    fullList.forEach(data => {
+        salaryArray.push(data.role_salary);
+    })
+    let totalNum = salaryArray.reduce((a, b) => a + b, 0)
+    let prettyNum = numberWithCommas(totalNum);
+    console.log(`\nThe current employee salary overhead is $${prettyNum}!\n`);
+    initialize();
 }
 
 
@@ -368,10 +430,10 @@ const promptExit = () => {
             }
         ]).then(data => {
             if (!data.isDone) {
-                console.log("Returning to nav...")
+                console.log(`\nReturning to nav...\n`)
                 initialize();
             } else {
-                console.log("\n" + "Come back soon!")
+                console.log(`\nCome back soon!\n`)
                 connection.end();
             }
         })
@@ -465,8 +527,14 @@ const updateQuery = (colName, fName, lName, newVal) => {
         if (err) {
             throw err;
         }
-        console.log(`\n sucessfully changed ${fName}'s ${colName}!`)
+        console.log(`\n sucessfully changed ${fName}'s ${colName}!\n`)
     })
+}
+
+// regex function that returns a formatted number for total salary
+// Taken from "https://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript" bc I dont understand the regex stuff yet...
+const numberWithCommas = (x) => {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 
