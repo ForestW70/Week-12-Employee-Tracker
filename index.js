@@ -20,7 +20,7 @@ connection.connect(err => {
 });
 
 // UPDATED LISTS ==========================================
-let depatmentList = [];
+let departmentList = [];
 let namesList = [];
 let managerList = [];
 let fullList = [];
@@ -30,7 +30,9 @@ let fullList = [];
 // home function that controls user navigation, refreshes lists.
 const initialize = async () => {
     refreshLists();
+    updateDepartmentList();
     updateManagerList();
+
     await inquirer
         .prompt([
             {
@@ -109,7 +111,7 @@ const viewEmployeesBy = async (action) => {
                 type: 'list',
                 name: 'department_id',
                 message: 'What department would you like to search?',
-                choices: depatmentList,
+                choices: departmentList,
             }
         ]).then(data => {
             header = `Here are all ${data.department_id.split("-")[1]}'s employees.`
@@ -283,7 +285,7 @@ const updateEmployeeRole = async() => {
             type: 'list',
             name: "newRole",
             message: "What role would you like to re-assign them to?",
-            choices: depatmentList,
+            choices: departmentList,
         },
     ]).then(data => {
         const selcFName = data.emp_name.split(' ')[0];
@@ -319,15 +321,39 @@ const updateEmployeeManager = async() => {
     })
 }
 
-const updateDepartments = () => {
 
+// ========================================================
+// UPDATE DEPARTMENT LIST
+const updateDepartments = async() => {
+    
+    await inquirer.prompt([
+        {
+            type: 'input',
+            name: "dept",
+            message: "What department would you like to add?",
+        }
+    ]).then(data => {
+        let newDept = data.dept.trim();
+        let query = 'INSERT INTO departments SET ?;'
+        connection.query(query, {
+            "name": newDept,
+        }, (err, res) => {
+            if (err) {
+                throw err
+            }
+            console.log(`/n/n Sucessfully added ${newDept} to active departments!`);
+            initialize();
+        })
+
+    })
 }
 
+
+// ========================================================
+// VIEW BUDGET
 const viewBudget = () => {
 
 }
-
-
 
 
 // ========================================================
@@ -364,7 +390,7 @@ const refreshLists = () => {
             // let peeps = await res;
             fullList = [];
             namesList = [];
-            depatmentList = [];
+            // departmentList = [];
             res.forEach(people => {
                 let person = {
                     "first_name": people.first_name,
@@ -376,13 +402,28 @@ const refreshLists = () => {
                 }
                 fullList.push(person);
                 namesList.push(person.first_name + ' ' + person.last_name);
-                if (!depatmentList.includes(`${people.role_id}-${person.dept_name}`)) {
-                    depatmentList.push(`${people.role_id}-${person.dept_name}`);
-                }
+                // if (!departmentList.includes(`${people.role_id}-${person.dept_name}`)) {
+                //     departmentList.push(`${people.role_id}-${person.dept_name}`);
+                // }
             })
 
         })
+}
 
+const updateDepartmentList = () => {
+    connection.query('SELECT * FROM departments', (err, res) => {
+        if (err) {
+            throw err
+        }
+        departmentList = [];
+        res.forEach(dept => {
+            let department = {
+                "dept_name": dept.name,
+                "dept_id": dept.id,
+            }
+            departmentList.push(`${department.dept_id}-${department.dept_name}`);
+        })
+    })
 }
 
 // update manager list query
@@ -410,7 +451,6 @@ const updateManagerList = () => {
 // update employee by * query
 const updateQuery = (colName, fName, lName, newVal) => {
     const query = `UPDATE employees SET ${colName} = ? WHERE first_name = ? AND last_name = ?;`
-    // let col = colName
     connection.query(query, [
         [
             newVal
