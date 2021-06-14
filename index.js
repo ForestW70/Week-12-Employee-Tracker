@@ -1,7 +1,7 @@
+// CONNECTION =============================================
 const inquirer = require('inquirer');
 const mysql = require("mysql");
 const consoleTable = require("console.table");
-const { Table } = require('console-table-printer');
 const GuiTable = require("./lib/tableMaker.js");
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -19,12 +19,15 @@ connection.connect(err => {
     initialize();
 });
 
+// UPDATED LISTS ==========================================
 let depatmentList = [];
 let namesList = [];
 let managerList = [];
 let fullList = [];
 
 
+// ========================================================
+// home function that controls user navigation, refreshes lists.
 const initialize = async () => {
     refreshLists();
     updateManagerList();
@@ -48,7 +51,6 @@ const initialize = async () => {
                 ],
             },
         ]).then(data => {
-
             switch (data.path) {
                 case 'View all employees':
                     viewAllEmployees();
@@ -86,12 +88,17 @@ const initialize = async () => {
         })
 }
 
+
+// ========================================================
+// VIEW EMPLOYEES BY
+// all
 const viewAllEmployees = () => {
     console.log("\n" + "*~All employees~*" + "\n")
     console.table(fullList);
     initialize();
 }
 
+// view by deprtment or by manager
 const viewEmployeesBy = async (action) => {
     let query;
     let header;
@@ -126,11 +133,9 @@ const viewEmployeesBy = async (action) => {
             const value = Number(data.manager_id.split("-")[0]);
             query = `SELECT * FROM employees WHERE ${search} = ${value}`;
         })
-
     } else {
         console.log("whoops something went wrong!")
     }
-
 
     connection.query(query, (err, res) => {
         if (err) throw err;
@@ -142,7 +147,8 @@ const viewEmployeesBy = async (action) => {
 }
 
 
-
+// ========================================================
+// ADD EMPLOYEE
 const addEmployee = async () => {
     await inquirer.prompt([
         {
@@ -212,6 +218,8 @@ const addEmployee = async () => {
 }
 
 
+// ========================================================
+// REMOVE EMPLOYEE
 const removeEmployee = () => {
     let allNames = [];
     connection.query('select * from employees;', async (err, res) => {
@@ -259,97 +267,71 @@ const removeEmployee = () => {
     })
 }
 
-const updateEmployeeRole = () => {
-    let allNames = [];
-    connection.query('select * from employees;', async (err, res) => {
-        if (err) {
-            throw new Error(err)
-        }
-        res.forEach(person => {
-            allNames.push(person.first_name + ' ' + person.last_name)
-        })
 
-        await inquirer.prompt([
-            {
-                type: 'list',
-                name: "emp_name",
-                message: "Please select the employee you would like to update:",
-                choices: allNames
-            },
-            {
-                type: 'list',
-                name: "toUpdate",
-                message: "What role would you like to re-assign them to?",
-                choices: [
-                    'First name',
-                    'Last name',
-                    'Role',
-                    'Who their boss is',
-                    'Who is a manager'
-                ]
-            },
-        ]).then(data => {
-            const selcEmployee = data.emp_name.split(' ');
-            switch (data.toUpdate) {
-                case 'First name':
-                    inquirer.prompt([
-                        {
-                            type: 'input',
-                            name: 'newFName',
-                            message: "please enter the employee's modified first name:"
-                        }
-                    ]).then(data => {
-                        let newVal = data.newFName;
-                        updateQuery('first_name', newVal, selcEmployee);
-                    })
-                    break;
-                case 'Last name':
-                    inquirer.prompt([
-                        {
-                            type: 'input',
-                            name: 'newLName',
-                            message: "please enter the employee's modified last name:"
-                        }
-                    ]).then(data => {
-                        let newVal = data.newLName;
-                        updateQuery('last_name', newVal, selcEmployee);
-                    })
-                    break;
-                case 'Role':
-                    updateQuery('role_id', newVal, selcEmployee);
-                    break;
-                case 'Who their boss is':
-                    updateQuery('has_boss');
-                    break;
-                case 'Who is a manager':
-                    updateQuery('manager_id');
-                    break;
-            }
-        })
+// ========================================================
+// UPDATE EMPLOYEE
+// update role
+const updateEmployeeRole = async() => {
+    await inquirer.prompt([
+        {
+            type: 'list',
+            name: "emp_name",
+            message: "Please select the employee you would like to update:",
+            choices: namesList,
+        },
+        {
+            type: 'list',
+            name: "newRole",
+            message: "What role would you like to re-assign them to?",
+            choices: depatmentList,
+        },
+    ]).then(data => {
+        const selcFName = data.emp_name.split(' ')[0];
+        const selcLName = data.emp_name.split(' ')[1];
+        const newRoleId = data.newRole.split("-")[0];
+        updateQuery("role_id", selcFName, selcLName, newRoleId);
+        initialize();
+    })
+
+}
+
+// update manager
+const updateEmployeeManager = async() => {
+    await inquirer.prompt([
+        {
+            type: 'list',
+            name: "emp_name",
+            message: "Please select the employee you would like to update:",
+            choices: namesList,
+        },
+        {
+            type: 'list',
+            name: "newMgmt",
+            message: "What manager would you like to re-assign them to?",
+            choices: managerList,
+        },
+    ]).then(data => {
+        const selcFName = data.emp_name.split(' ')[0];
+        const selcLName = data.emp_name.split(' ')[1];
+        const newBossId = data.newMgmt.split("-")[0];
+        updateQuery("has_boss", selcFName, selcLName, newBossId);
+        initialize();
     })
 }
 
-const updateQuery = (colName, newVal, emp) => {
-    const query = `UPDATE employees SET ${colName} = ? WHERE first_name = ? AND last_name = ?;`
-    // let col = colName
-    connection.query(query, [
-        { newVal },
-        [
-            emp[0]
-        ],
-        [
-            emp[1]
-        ]
-    ], (err, res) => {
-        if (err) {
-            throw err;
-        }
-        console.log(`sucessfully changed ${emp[0]}'s ${colName}!`)
-    })
+const updateDepartments = () => {
+
+}
+
+const viewBudget = () => {
+
 }
 
 
 
+
+// ========================================================
+// EXIT PROMPT
 const promptExit = () => {
     inquirer
         .prompt([
@@ -369,6 +351,10 @@ const promptExit = () => {
         })
 }
 
+
+// ========================================================
+// UTILITY FUNCTIONS
+// update most lists query
 const refreshLists = () => {
     connection.query("SELECT first_name, last_name, employees.id, employees.role_id, departments.name, roles.title, roles.salary FROM employees LEFT JOIN roles ON employees.role_id = roles.id LEFT JOIN departments ON employees.role_id = departments.id ORDER BY employees.role_id;",
         async (err, res) => {
@@ -399,6 +385,7 @@ const refreshLists = () => {
 
 }
 
+// update manager list query
 const updateManagerList = () => {
     connection.query("SELECT first_name, last_name, manager_id, r.title FROM employees e INNER JOIN roles r ON e.manager_id = r.id AND e.manager_id > 0;",
         (err, res) => {
@@ -418,6 +405,28 @@ const updateManagerList = () => {
 
             })
         })
+}
+
+// update employee by * query
+const updateQuery = (colName, fName, lName, newVal) => {
+    const query = `UPDATE employees SET ${colName} = ? WHERE first_name = ? AND last_name = ?;`
+    // let col = colName
+    connection.query(query, [
+        [
+            newVal
+        ],
+        [
+            fName
+        ],
+        [
+            lName
+        ]
+    ], (err, res) => {
+        if (err) {
+            throw err;
+        }
+        console.log(`\n sucessfully changed ${fName}'s ${colName}!`)
+    })
 }
 
 
