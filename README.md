@@ -22,8 +22,9 @@ For Good.
 
 * # Project installation
   1. npm i,
-  2. npm run start,
-  3. enjoy.
+  2. npm run seed - if you would like to start with employees,
+  3. npm run start,
+  4. enjoy.
  
 
 * # Additional comments
@@ -35,9 +36,13 @@ For Good.
 
   - The logic behind the joins for the three tables also took me a while to figure out. especially when it came to creating new departments.
 
-  - regex function taken from stackoverflow (ln: 558). hopefully when i get to that hw I will better understand what its doing lol.
+  - regex function taken from stackoverflow (ln: 550). hopefully when i get to that hw I will better understand what its doing lol.
 
   - One thing I really wanted to add was the display of who is a manager and who manages which employee. I used a colomn "has_boss" to match up with the colomn "manager_id" which would only have a value if they were a manager of that department, however I couldnt figure out how to assosiate values inside one table. I also couldnt figure out how i can add manager as a persons role while also keeping their department info. this one really frusterated me.
+
+  - For some reason I couldnt not get insterting NULL to work with my mysql queries, so the only time you can have an employee with no manager is if you remove the department.
+
+  - During the demo vid I noticed that deleting the department resulted in the employee being deleted as well. Ususally what happened was the employee would persist but would have NULL in all job related fields. I'm not sure if this was a bug with my queries or if it is a bug with the console.table/log displaying in the console (explained above).
 
 
 
@@ -47,16 +52,16 @@ For Good.
 
 ###### Questions or concerns? 
 * Please contact me at one of the following!
-  Email - hexaforest@gmail.com
-  gitHub - https://github.com/ForestW70/
+  - Email - hexaforest@gmail.com
+  - gitHub - https://github.com/ForestW70/
 
 
 # Extras
 * Screenshots:
-  ![App demo page](./assets/images/app-demo-page.png)
+  ![App demo screen](./assets/images/app-demo-page.png)
 
 * Demo:
-  [App demo](link)
+  [App demo video](https://youtu.be/x-xalO1bMd8)
 
 * Links:
   [Repo page](https://github.com/ForestW70/hw12employeetracker)

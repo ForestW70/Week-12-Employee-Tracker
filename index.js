@@ -2,12 +2,14 @@
 const inquirer = require('inquirer');
 const mysql = require("mysql");
 const consoleTable = require("console.table");
+require('dotenv').config()
+
 const connection = mysql.createConnection({
     host: 'localhost',
-    port: 3306,
-    user: 'root',
-    password: '',
-    database: 'hw12_db',
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
 });
 connection.connect(err => {
     if (err) {
@@ -30,6 +32,7 @@ let fullList = [];
 // ========================================================
 // HOME
 const initialize = async () => {
+    // creates up to date lists to use as prompt list-choices.
     refreshLists();
     updateDepartmentList();
     updateManagerList();
@@ -48,7 +51,6 @@ const initialize = async () => {
                     'Add employees',
                     'Remove employee',
                     'Update employee role',
-                    'Update employee department',
                     'Update employee manager',
                     'Add departments',
                     'Remove departments',
@@ -75,9 +77,6 @@ const initialize = async () => {
                     break;
                 case 'Update employee role':
                     updateEmployeeRole();
-                    break;
-                case 'Update employee department':
-                    updateEmployeeDepartment();
                     break;
                 case 'Update employee manager':
                     updateEmployeeManager();
@@ -308,6 +307,7 @@ const updateEmployeeManager = async () => {
         const selcLName = data.emp_name.split(' ')[1];
         const newBossId = data.newMgmt.split("-")[0];
         updateQuery("has_boss", selcFName, selcLName, newBossId);
+        console.log(`\n sucessfully changed ${selcFName}'s manager!\n`)
         initialize();
     })
 }
@@ -448,36 +448,37 @@ const promptExit = () => {
 
 // ========================================================
 // UTILITY FUNCTIONS
-// update most lists query
+// update name and full lists query
 const refreshLists = () => {
-    connection.query("SELECT first_name, last_name, employees.id, employees.role_id, departments.name, roles.title, roles.salary FROM employees LEFT JOIN roles ON employees.role_id = roles.id LEFT JOIN departments ON employees.role_id = departments.id ORDER BY employees.role_id;",
+    connection.query("SELECT first_name, last_name, employees.id, employees.role_id, employees.has_boss, employees.manager_id, departments.name, roles.title, roles.salary FROM employees LEFT JOIN roles ON employees.role_id = roles.id LEFT JOIN departments ON employees.role_id = departments.id ORDER BY employees.role_id;",
         async (err, res) => {
             if (err) {
                 throw err.code;
             }
-            // let peeps = await res;
+
             fullList = [];
             namesList = [];
-            // departmentList = [];
             res.forEach(people => {
                 let person = {
+                    "id": people.id,
                     "first_name": people.first_name,
                     "last_name": people.last_name,
-                    "id": people.id,
+                    "role_id": people.role_id,
                     "dept_name": people.name,
                     "role_title": people.title,
+                    "manager_id": people.manager_id,
+                    "assigned_to": people.has_boss,
                     "role_salary": people.salary,
                 }
                 fullList.push(person);
                 namesList.push(person.first_name + ' ' + person.last_name);
-                // if (!departmentList.includes(`${people.role_id}-${person.dept_name}`)) {
-                //     departmentList.push(`${people.role_id}-${person.dept_name}`);
-                // }
+                
             })
 
         })
 }
 
+// update departments list.
 const updateDepartmentList = () => {
     connection.query('SELECT * FROM departments', (err, res) => {
         if (err) {
@@ -494,6 +495,7 @@ const updateDepartmentList = () => {
     })
 }
 
+// update roles list.
 const updateRoleList = () => {
     connection.query(`SELECT id, title, salary FROM roles`, (err, res) => {
         if (err) {
@@ -511,7 +513,7 @@ const updateRoleList = () => {
     })
 }
 
-// update manager list query
+// update manager list.
 const updateManagerList = () => {
     connection.query("SELECT first_name, last_name, manager_id, r.title FROM employees e INNER JOIN roles r ON e.manager_id = r.id AND e.manager_id > 0;",
         (err, res) => {
@@ -536,17 +538,7 @@ const updateManagerList = () => {
 // update employee by * query
 const updateQuery = (colName, fName, lName, newVal) => {
     const query = `UPDATE employees SET ${colName} = ? WHERE first_name = ? AND last_name = ?;`
-    connection.query(query, [
-        [
-            newVal
-        ],
-        [
-            fName
-        ],
-        [
-            lName
-        ]
-    ], (err, res) => {
+    connection.query(query, [newVal, fName, lName], (err, res) => {
         if (err) {
             throw err;
         }

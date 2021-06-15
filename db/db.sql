@@ -2,7 +2,7 @@ DROP DATABASE IF EXISTS hw12_db;
 CREATE DATABASE hw12_db;
 USE hw12_db;
 
-
+-- tables
 CREATE TABLE departments (
   id INT NOT NULL AUTO_INCREMENT,
   name VARCHAR(30) NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE employees (
     
 );
 
-
+-- seeds
 INSERT INTO departments(id, name)
 VALUES 
 (1, "CEO"),
