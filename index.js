@@ -2,7 +2,6 @@
 const inquirer = require('inquirer');
 const mysql = require("mysql");
 const consoleTable = require("console.table");
-const GuiTable = require("./lib/tableMaker.js");
 const connection = mysql.createConnection({
     host: 'localhost',
     port: 3306,
@@ -22,6 +21,7 @@ connection.connect(err => {
 
 // UPDATED LISTS ==========================================
 let departmentList = [];
+let rolesList = [];
 let namesList = [];
 let managerList = [];
 let fullList = [];
@@ -33,6 +33,7 @@ const initialize = async () => {
     refreshLists();
     updateDepartmentList();
     updateManagerList();
+    updateRoleList();
 
     await inquirer
         .prompt([
@@ -47,6 +48,7 @@ const initialize = async () => {
                     'Add employees',
                     'Remove employee',
                     'Update employee role',
+                    'Update employee department',
                     'Update employee manager',
                     'Add departments',
                     'Remove departments',
@@ -73,6 +75,9 @@ const initialize = async () => {
                     break;
                 case 'Update employee role':
                     updateEmployeeRole();
+                    break;
+                case 'Update employee department':
+                    updateEmployeeDepartment();
                     break;
                 case 'Update employee manager':
                     updateEmployeeManager();
@@ -215,7 +220,7 @@ const addEmployee = async () => {
 
 // ========================================================
 // REMOVE EMPLOYEE
-const removeEmployee = async() => {
+const removeEmployee = async () => {
 
     await inquirer.prompt([
         {
@@ -270,13 +275,14 @@ const updateEmployeeRole = async () => {
             type: 'list',
             name: "newRole",
             message: "What role would you like to re-assign them to?",
-            choices: departmentList,
+            choices: rolesList,
         },
     ]).then(data => {
         const selcFName = data.emp_name.split(' ')[0];
         const selcLName = data.emp_name.split(' ')[1];
         const newRoleId = data.newRole.split("-")[0];
         updateQuery("role_id", selcFName, selcLName, newRoleId);
+        console.log(`\n sucessfully changed ${selcFName}'s roles!\n`)
         initialize();
     })
 
@@ -321,13 +327,13 @@ const updateDepartments = async () => {
             type: 'input',
             name: "role",
             message: "What will their roll be called?",
-        
+
         },
         {
             type: 'number',
             name: "salary",
             message: "What will their salary be?",
-        
+
         }
     ]).then(data => {
         const newDept = data.dept.trim();
@@ -390,8 +396,8 @@ const removeDepartments = async () => {
                 if (err) {
                     throw err
                 }
-                console.log(`\nyou may have lost ${res.changedRows} employees! Go back and reassign them!\n`)
-                
+                console.log(`\nyou may have lost ${res.changedRows} employees! Go back to reassign them!\n`)
+
             })
             initialize();
         } else {
@@ -488,6 +494,23 @@ const updateDepartmentList = () => {
     })
 }
 
+const updateRoleList = () => {
+    connection.query(`SELECT id, title, salary FROM roles`, (err, res) => {
+        if (err) {
+            throw err
+        }
+        rolesList = [];
+        res.forEach(role => {
+            let roleInfo = {
+                "id": role.id,
+                "title": role.title,
+                "salary": role.salary
+            }
+            rolesList.push(`${roleInfo.id}-${roleInfo.title}-${roleInfo.salary}`);
+        })
+    })
+}
+
 // update manager list query
 const updateManagerList = () => {
     connection.query("SELECT first_name, last_name, manager_id, r.title FROM employees e INNER JOIN roles r ON e.manager_id = r.id AND e.manager_id > 0;",
@@ -527,7 +550,6 @@ const updateQuery = (colName, fName, lName, newVal) => {
         if (err) {
             throw err;
         }
-        console.log(`\n sucessfully changed ${fName}'s ${colName}!\n`)
     })
 }
 
