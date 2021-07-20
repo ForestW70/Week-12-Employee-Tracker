@@ -1,21 +1,33 @@
 # Forest Wilson - Homework 12 - Employee Tracker
-For Good.
+MIT - ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)(https://opensource.org/licenses/MIT) - For Evil.
+<!-- Original deployment date: June 15th, 2021 -->
 
 
 ## Table of Contents:
+- [Tech used](#tech-used)
 - [Project description](#project-description)
 - [Usage instructions](#usage-instructions)
 - [Project installation](#project-installation)
 - [Additional comments](#additional-comments)
 - [Contribution information](#contribution-information)
 - [Questions](#questions-or-concerns)
+- [Extras](#extras)
 
 
 ### About This Project
+
+* # Tech used:
+  1. JavaScript
+  2. Node.js
+  3. MySql
+  *  Npm
+    - inquirer
+    - dotenv
+    - console.table
+
 * # Project description:
   Are you a blossoming business man who wants to keep a better inventory of your employees? Welcome to Employee tracker, your one stop shop for keeping track and managing all of your employees and their information. Here you may view all of your employees, add and remove employees, update employee's information, add and remove departments, and view your total budget.
   
-
 * # Usage instructions
   Start the app, and proceed through the menus to your desire. "view all" will display all of your current employees, refreshed after every action.
   
@@ -47,7 +59,7 @@ For Good.
 
 
 #### Contribution information 
-- Wanna collaborate? Hit the line.
+- If you would like to contribute to this project, please follow best practices and message me at one of the provided contacts bellow if you want to push!
 
 
 ###### Questions or concerns? 
@@ -58,11 +70,11 @@ For Good.
 
 # Extras
 * Screenshots:
-  ![App demo screen](./assets/images/app-demo-page.png)
+  - ![App demo screen](./assets/images/app-demo-page.png)
 
 * Demo:
-  [App demo video](https://youtu.be/x-xalO1bMd8)
+  - [App demo video](https://youtu.be/x-xalO1bMd8)
 
 * Links:
-  [Repo page](https://github.com/ForestW70/hw12employeetracker)
+  - [Repo page](https://github.com/ForestW70/hw12employeetracker)
   
