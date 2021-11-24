@@ -76,5 +76,5 @@ MIT - ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)(https
   - [App demo video](https://youtu.be/x-xalO1bMd8)
 
 * Links:
-  - [Repo page](https://github.com/ForestW70/hw12employeetracker)
+  - [Repo page](https://github.com/ForestW70/Week-12-Employee-Tracker)
   
